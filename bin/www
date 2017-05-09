@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('simulay-server:server');
 var http = require('http');
-var initWetty = require('../services/wetty');
+var docker = require('../docker/docker');
 
 /**
  * Get port from environment and store in Express.
@@ -29,7 +29,7 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
-initWetty(server)
+docker.initWetty(server);
 
 /**
  * Normalize a port into a number, string, or false.

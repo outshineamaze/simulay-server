@@ -7,7 +7,6 @@ process.on('uncaughtException', function(e) {
 });
 
 var io = server(httpserv,{path: '/wetty/socket.io'});
-console.log(httpserv);
 io.on('connection', function(socket){
 
     var request = socket.request;
@@ -48,6 +47,5 @@ io.on('connection', function(socket){
         term.end();
     });
 })
-
 }
 module.exports = initWetty
