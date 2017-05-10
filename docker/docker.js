@@ -104,17 +104,6 @@ const initWetty = (httpserv)  => {
 }
 
 const runCode = (runCodeStruct, res) => {
-
-    let request = {
-        "stdin": "42",
-        "files": [
-        {
-            "name": "main.py",
-            "content": "print(input('Number from stdin: '))"
-        }
-    ]
-    }
-
     let response = {
         "stdout": "Number from stdin: 42\n",
         "stderr": "",

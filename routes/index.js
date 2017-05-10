@@ -1,7 +1,6 @@
 var express = require('express');
 var dockerAPI = require('../docker/docker');
 var router = express.Router();
-
 var Docker = require('dockerode');
 var docker = new Docker({socketPath: '/var/run/docker.sock'});
 
@@ -18,9 +17,7 @@ router.get('/wetty', function(req, res) {
 
 router.get('/docker/list', function(req, res, next) {
   docker.listContainers(function (err, containers) {
-    res.send(JSON.stringify(containers.map(function (item) {
-      return item.ID
-    })));
+    res.send(JSON.stringify(containers));
   });
 });
 
@@ -34,20 +31,6 @@ router.get('/docker/create', function(req, res, next) {
     });
 
   });
-});
-
-
-router.post('/docker/runcode',function (req, res, next) {
-  let runCodeStruct = {
-    stdin: req.body.stdin,
-    cmd: req.body.cmd,
-    files: {
-      name: req.body.files_name,
-      content: req.body.files_content
-    }
-  }
-  let resContent = dockerAPI.runCode(runCodeStruct,res)
-  //res.send(JSON.stringify(resContent));
 });
 
 router.post('/simulation/code/run',function (req, res, next) {
