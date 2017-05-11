@@ -8,7 +8,8 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var container  = require('./routes/container');
-var api = require('./routes/api')
+var api = require('./routes/api');
+var simulation = require('./routes/simulation');
 
 var app = express();
 
@@ -19,9 +20,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 app.use('/', index);
 app.use('/', express.static(path.join(__dirname, 'public')));
+app.use('/simulation', simulation);
 app.use('/users', users);
 app.use ('/api', api);
 app.use('/container', container);

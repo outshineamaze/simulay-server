@@ -103,16 +103,15 @@ const initWetty = (httpserv)  => {
     })
 }
 
-const runCode = (runCodeStruct, res) => {
+const runCode = (runCodeStruct, res, handle) => {
     let response = {
         "stdout": "Number from stdin: 42\n",
         "stderr": "",
         "error": ""
     }
-
     function runExec(container) {
         var options = {
-            Cmd: ['octave','--silent', '--eval', runCodeStruct.files.content],
+            Cmd: ['octave','--silent', '--eval', runCodeStruct.content],
             AttachStdout: true,
             AttachStderr: true
         };
@@ -130,8 +129,9 @@ const runCode = (runCodeStruct, res) => {
                 });
                 stream.on('end',function(){
                     response.stdout = data;
+                    runCodeStruct.stdout = data;
+                    handle(runCodeStruct);
                     res.send(response);
-                    console.log("data:" + data);
                 });
             });
         });
@@ -147,6 +147,7 @@ const runCode = (runCodeStruct, res) => {
     });
 }
 module.exports = {
+    docker,
     initWetty,
     runCode
 }
