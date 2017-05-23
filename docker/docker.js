@@ -27,6 +27,7 @@ const initWetty = (httpserv)  => {
             'StdinOnce': false,
             'Cmd': ['octave', '--no-gui', '--silent'],
             'Image': 'outshine/octave:1.0',
+            'WorkingDir': "/data/image",
         };
 
         var previousKey,
@@ -112,6 +113,8 @@ const runCode = (runCodeStruct, res, handle) => {
     function runExec(container) {
         var options = {
             Cmd: ['octave','--silent', '--eval', runCodeStruct.content],
+
+            //Cmd: ['/bin/bash', '-c', "echo $(pwd) && for k in $( seq 1 5 ); do sleep 1; done |sh"],
             AttachStdout: true,
             AttachStderr: true
         };
@@ -130,6 +133,7 @@ const runCode = (runCodeStruct, res, handle) => {
                 stream.on('end',function(){
                     response.stdout = data;
                     runCodeStruct.stdout = data;
+                    console.log(runCodeStruct);
                     handle(runCodeStruct);
                     res.send(response);
                 });
@@ -139,7 +143,14 @@ const runCode = (runCodeStruct, res, handle) => {
     docker.createContainer({
         Image: 'outshine/octave:1.0',
         Tty: false,
-        Cmd: ['/bin/sh', '-c', "for k in $( seq 1 5 ); do sleep 1; done"]
+        WorkingDir: "/data/image",
+        HostConfig: {
+        "Binds": [
+            "/data/simulay_image://data/image"
+        ],},
+        //Cmd: ['/bin/sh', '-c', "for k in $( seq 1 5 ); do sleep 1; done"],
+        Cmd: ['/bin/bash', '-c', "echo $(pwd) > /data/image/hello.txt && for k in $( seq 1 5 ); do sleep 1; done |sh"],
+
     }, function(err, container) {
         container.start({}, function(err, data) {
             runExec(container);

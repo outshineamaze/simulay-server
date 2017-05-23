@@ -4,7 +4,7 @@
  * @version 版本 2017/5/10
  */
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://127.0.0.1:27017/simulay');
+mongoose.connect('mongodb://172.17.0.3:27017/simulay');
 var crypto = require('crypto');
 
 var Schema = mongoose.Schema,
