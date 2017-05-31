@@ -5,6 +5,7 @@
  */
 var express = require('express');
 var dockerAPI = require('../docker/docker');
+var crypto = require('crypto');
 var router = express.Router();
 var interface = require('../services/model').interface;
 
@@ -29,8 +30,17 @@ router.get('/list/all', function (req, res, next) {
     interface.getCodeList({}, res);
 });
 
+router.get('/history', function (req, res, next) {
+    interface.getCodeList({}, res);
+});
+router.get('/recom/all', function (req, res, next) {
+    interface.getCodeList(req.query, res);
+});
 router.get('/ide/getcode', function (req, res, next) {
-    interface.getCode(req.query, res);
+    let query = {
+        _id: req.query.id
+    };
+    interface.getCode(query, res);
 });
 
 router.post('/ide/runcode', function (req, res, next) {
@@ -41,11 +51,30 @@ router.post('/ide/runcode', function (req, res, next) {
         content: req.body.content
     }
     console.log(runCodeStruct);
+    let secret = runCodeStruct.name || '';
+    let hash = crypto.createHmac('md5', secret)
+        .update(runCodeStruct.content)
+        .digest('hex');
+    console.log(hash);
+    runCodeStruct.hash = hash;
     dockerAPI.runCode(runCodeStruct, res, interface.updateCode);
 });
 
 router.post('/ide/savecode', function (req, res, next) {
-    interface.addCode(req.body, res);
+    let runCodeStruct = {
+        stdin: req.body.stdin,
+        cmd: req.body.cmd,
+        name: req.body.name,
+        content: req.body.content
+    }
+    console.log(runCodeStruct);
+    let secret = runCodeStruct.name || '';
+    let hash = crypto.createHmac('md5', secret)
+        .update(runCodeStruct.content)
+        .digest('hex');
+    console.log(hash);
+    runCodeStruct.hash = hash;
+    interface.addCode(runCodeStruct, res);
 });
 
 

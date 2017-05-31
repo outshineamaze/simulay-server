@@ -27,7 +27,7 @@ const initWetty = (httpserv)  => {
             'StdinOnce': false,
             'Cmd': ['octave', '--no-gui', '--silent'],
             'Image': 'outshine/octave:1.0',
-            'WorkingDir': "/data/image",
+            'WorkingDir': "/data/simulay_image",
         };
 
         var previousKey,
@@ -110,13 +110,34 @@ const runCode = (runCodeStruct, res, handle) => {
         "stderr": "",
         "error": ""
     }
+
+    let workingDir = '/data/simulay_image/default/';
+    if (runCodeStruct.hash) {
+        workingDir  = '/data/simulay_image/' + runCodeStruct.hash + '/';
+        fs.exists(workingDir, function (exists) {
+            console.log(exists ? "it's there" : "no file!");
+            if (!exists) {
+                fs.mkdirSync(workingDir,0755);
+            }
+        });
+    }
+    function walkerHashDir(workingDir) {
+        var files = fs.readdirSync(workingDir);
+        var fileList = files.map(function (filename) {
+            return runCodeStruct.hash + "/" + filename;
+        });
+        return fileList;
+    }
+
+
+
     function runExec(container) {
         var options = {
             Cmd: ['octave','--silent', '--eval', runCodeStruct.content],
 
             //Cmd: ['/bin/bash', '-c', "echo $(pwd) && for k in $( seq 1 5 ); do sleep 1; done |sh"],
             AttachStdout: true,
-            AttachStderr: true
+            AttachStderr: true,
         };
         console.log('runExec')
         container.exec(options, function(err, exec) {
@@ -133,6 +154,9 @@ const runCode = (runCodeStruct, res, handle) => {
                 stream.on('end',function(){
                     response.stdout = data;
                     runCodeStruct.stdout = data;
+                    let images = walkerHashDir(workingDir);
+                    response.images = images;
+                    runCodeStruct.images = images;
                     console.log(runCodeStruct);
                     handle(runCodeStruct);
                     res.send(response);
@@ -143,13 +167,13 @@ const runCode = (runCodeStruct, res, handle) => {
     docker.createContainer({
         Image: 'outshine/octave:1.0',
         Tty: false,
-        WorkingDir: "/data/image",
+        WorkingDir: workingDir,
         HostConfig: {
         "Binds": [
-            "/data/simulay_image://data/image"
+            "/data/simulay_image:/data/simulay_image"
         ],},
         //Cmd: ['/bin/sh', '-c', "for k in $( seq 1 5 ); do sleep 1; done"],
-        Cmd: ['/bin/bash', '-c', "echo $(pwd) > /data/image/hello.txt && for k in $( seq 1 5 ); do sleep 1; done |sh"],
+        Cmd: ['/bin/bash', '-c', "echo $(pwd) > /data/simulay_image/hello.txt && for k in $( seq 1 5 ); do sleep 1; done |sh"],
 
     }, function(err, container) {
         container.start({}, function(err, data) {

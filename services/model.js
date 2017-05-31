@@ -28,6 +28,7 @@ var Code  = new Schema({
     content: String,
     date: { type: Date, default: Date.now },
     exec_time: Number,
+    images: [String],
     result_id:Number,
     analysis_id: Number,
     setting_id: Number
@@ -74,13 +75,13 @@ const  updateUser = (data) => {
 
 const addCode = (data, res) => {
     let code  = mongoose.model('Code', Code);
-    const secret = data.name || '';
-    const hash = crypto.createHmac('md5', secret)
-        .update(data.content)
-        .digest('hex');
-    console.log(hash);
-    data.hash = hash;
-    code.update({hash: hash}, data, function(error,result) {
+    // const secret = data.name || '';
+    // const hash = crypto.createHmac('md5', secret)
+    //     .update(data.content)
+    //     .digest('hex');
+    // console.log(hash);
+    // data.hash = hash;
+    code.update({hash: data.hash}, data, function(error,result) {
         if (result.n <= 0) {
             code.create(data, function(err, result) {
                 res.json(result);
@@ -107,7 +108,7 @@ const  getCode = (data, res) =>  {
 const  getCodeList = (data, res) =>  {
     let code = mongoose.model('Code', Code);
     console.log(data)
-    code.find(data, function (err, codeData) {
+    function cb(err, codeData) {
         if (err) {
             console.log(err)
             return err;
@@ -115,24 +116,37 @@ const  getCodeList = (data, res) =>  {
         console.log(codeData)
         res.json(codeData)
         return codeData;
-    })
+    }
+    code.find(data).limit(10).sort('-date').
+    exec(cb);
 };
 const  updateCode = (data) => {
     const code  = mongoose.model('Code', Code);
-    const secret = data.name || '';
-    const hash = crypto.createHmac('md5', secret)
-        .update(data.content)
-        .digest('hex');
-    code.update({hash: hash}, data, function(error,result) {
+    code.update({hash: data.hash}, data, function(error,result) {
         if (result.n <= 0) {
             code.create(data, function(err, result) {
                 return (result);
             });
         } else {
+            console.log('success update');
+            console.log(data.images);
             return result;
         }
     });
 };
+
+const getResult = (hash, res) => {
+    const code  = mongoose.model('Code', Code);
+    code.findOne({hash: hash}, function (err, result) {
+        if (result) {
+            res.json({
+                stdout: result.stdout,
+                images: result.images,
+                stderr: result.stderr
+            });
+        }
+    })
+}
 
 module.exports = {
     interface: {
@@ -142,6 +156,7 @@ module.exports = {
         addCode,
         getCode,
         getCodeList,
-        updateCode
+        updateCode,
+        getResult
     }
 }
